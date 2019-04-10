@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:cache="http://www.springframework.org/schema/cache"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:lang="http://www.springframework.org/schema/lang"
+       xmlns:p="http://www.springframework.org/schema/p" xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+        http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-4.1.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.1.xsd
+        http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-4.1.xsd
+        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.1.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.1.xsd">
+        <!--aop是基于代理完成的,所有我们要激活我们自动代理-->
+        <aop:aspectj-autoproxy/>
+        <!--配置切面空间-->
+        <bean id="beforeAop" class="com.lvshihao.test.aop.BeforeAop"/>
+        <bean id="afterAop" class="com.lvshihao.test.aop.AfterAop"/>
+        <bean id="afterReturningAop" class="com.lvshihao.test.aop.AfterReturningAop"/>
+        <bean id="throwingAop" class="com.lvshihao.test.aop.ThrowingAop"/>
+        <bean id="aroundAop" class="com.lvshihao.test.aop.AroundAop"/>
+        <!--配置要被增强的类-->
+        <bean id="testAop1" class="com.lvshihao.test.aop.TestAop1"></bean>
+        <!--配置切入点等信息-->
+        <aop:config>
+            <!--单独配置植入表达式-->
+            <aop:pointcut id="all" expression="execution(* *.*(..))"/>
+            <aop:aspect id="beforeAspect" ref="beforeAop"> <!--ref代表要引入哪个切面空间-->
+                <!--aop:before表明他是前置增（前置通知）
+                    method:指明他要切这个切面的哪个方法
+                    poinctut:切入点 代表你要切入什么包下面的什么类下面的什么方法也就是要增强某个方法
+                -->
+                <aop:before method="beforeAop" pointcut="execution(* com.lvshihao.test.aop.TestAop1.testBerfo())"></aop:before>
+            </aop:aspect>
+            <aop:aspect id="afterAspect" ref="afterAop">
+                <!--如果有两个同类型的增强,谁在前谁先执行-->
+                <aop:after method="afterAop" pointcut="execution(* com.lvshihao.test.aop.TestAop1.testBerfo())"/>
+                <aop:after method="afterAopAndMsg" pointcut="execution(* com.lvshihao.test.aop.TestAop1.testBerfo())"/>
+            </aop:aspect>
+            <aop:aspect id="returningAspect" ref="afterReturningAop">
+                <!--returning用于绑定切面方法的参数,用来获取方法的返回值-->
+                <aop:after-returning method="afterReturningAop" pointcut-ref="all" returning="returnmsg"></aop:after-returning>
+            </aop:aspect>
+            <aop:aspect id="throwingAspect" ref="throwingAop">
+                <aop:after-throwing method="throwingAop" pointcut-ref="all" throwing="e"></aop:after-throwing>
+            </aop:aspect>
+            <!--如果使用了环绕通知的话,那么返回值和异常都会由环绕通知去解决有一个参数ProceedingJoinPoint-->
+            <aop:aspect id="aroundAspect" ref="aroundAop">
+                <aop:around method="aroundAop" pointcut-ref="all"/>
+            </aop:aspect>
+        </aop:config>
+</beans>

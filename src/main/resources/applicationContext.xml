@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <!--属性详情
+          abstract:该bean不能被实例化,只能被继承
+          parent:指定该bean的父bean,用于继承父类
+          destroy-method:指定bean销毁的时候要执行的方法,调用容器的close()或refresh()或者过时的destroy()就会触发此方法
+          init-method:指定bean初始化的时候需要执行的方法
+          name:指定bean的别名,可以写多个,通过name也可以获取对象,多个别名可以使用空格或者逗号分隔
+          scope:设置bean的实例是否为单利模式或者"多利"模式,默认为singleton代表单利模式
+          lazy-init:设置bean为延迟初始化,默认当容器初始化的时候就初始化bean,设置为true之后当使用bean的时候才会初始化,不使用懒加载的时候程序启动会慢一点,内存消耗更大一点,当我们使用bean的时候会快一些,使用的时候,程序启动会快一些,内存消耗更小一点,使用bean会慢一些
+          depends-on:代表此bean初始化之前必须要初始化某个类,当一个类严重依赖于某一个类的时候使用
+          alias:在spring配置文件中使用alias标签是配置单个bean的别名,也可以通过getBean获取此bean
+          autowire:自动注入,byType是根据类型进行注入它的属性,此时在上下文当中搜寻匹配类型的bean,找到有且仅有一个的情况下,才会将bean注入成功,没有的话就不会注入,不止一个的话就会抛出异常
+                   byName是根据bean中的pojo属性名进行搜寻匹配同id或者name的bean
+                   byConstructor按照构造方法注入,优先按照构造方法参数类型去匹配,如果匹配到一个那么直接注入,不止一个按照名字注入,如果一个都找不到,注入失败
+                   no代表不注入
+          primary:当autowire注入的时候使用byType存在多个同类型的bean时,在其中一个bean上设置此属性代表主要的bean,则此bean会被自动注入,默认值为true
+    -->
+    <!--将对象的创建交给spring容器,在这个配置文件里面去声明我要什么对象，
+    class: 写java类的权限定类名,它是通过全类名然后使用反射的技术进行创建的
+    id:    ID就是给这个对象在整个应用程序上下文当中取个名称以方便区分-->
+    <!--spring默认是通过无参的构造方法来完成对象的创建-->
+    <!--值的注入
+        1.setter注入(最常用的)
+            必须其字段有对应setter方法才可以完成name setName()
+            通过property子节点
+         2.构造注入
+
+        -->
+    <bean id="user" class="com.lvshihao.entity.User">
+        <property name="id" value="1"/>
+        <property name="name" value="吕世昊"/>
+        <property name="describe" value="我是最帅的"/>
+    </bean>
+    <!--抽象类的bean-->
+    <bean id="abstractUser" class="com.lvshihao.entity.User" abstract="true" destroy-method="depends" init-method="init">
+        <property name="id" value="10"/>
+    </bean>
+    <bean id="parentUser" class="com.lvshihao.entity.User" parent="abstractUser" name="pUser1 pUser2 pUser3" scope="singleton" lazy-init="true">
+        <property name="name" value="张莹"/>
+    </bean>
+
+    <!--依赖bean的使用方法-->
+    <bean id="dependsUser" class="com.lvshihao.entity.User" depends-on="dog" init-method="init"/>
+    <bean id="dog" class="com.lvshihao.entity.Dog"/>
+
+    <!--引用bean-->
+    <bean id="User" class="com.lvshihao.entity.User" depends-on="dog" init-method="init">
+        <!--非字面值类型的,必须使用ref引用-->
+        <property name="dog" ref="doge"/>
+    </bean>
+    <alias name="doge" alias="dogalias"/>    <!--配置别名-->
+    <bean id="doge" class="com.lvshihao.entity.Dog" primary="false"/>
+    <!--构造方法注入1-->
+    <bean id="cat1" class="com.lvshihao.entity.Cat">
+        <constructor-arg name="name" value="吕世昊"/>
+        <constructor-arg name="age" value="18"/>
+    </bean>
+    <!--构造方法注入2-->
+    <bean id="cat2" class="com.lvshihao.entity.Cat">
+        <constructor-arg index="0" value="吕世昊"/>
+        <constructor-arg index="1" value="18"/>
+    </bean>
+    <!--构造方法注入3-->
+    <bean id="cat3" class="com.lvshihao.entity.Cat">
+        <constructor-arg type="java.lang.String" value="吕世昊"/>
+        <constructor-arg type="int" value="18"/>
+    </bean>
+    <!--配置多种类型的属性-->
+    <bean id="beanType" class="com.lvshihao.entity.BeanType">
+        <property name="names">
+            <array>
+                <value>吕世昊</value>
+                <value>张莹</value>
+            </array>
+        </property>
+        <property name="colors">
+            <list>
+                <value>红色</value>
+                <value>绿色</value>
+            </list>
+        </property>
+        <property name="lears">
+            <set>
+                <value>开心</value>
+                <value>伤心</value>
+            </set>
+        </property>
+        <property name="maps">
+            <map>
+                <entry key="帅哥" value="吕世昊"></entry>
+                <entry key="美女" value="张莹"></entry>
+            </map>
+        </property>
+        <property name="properties">
+            <props>
+                <prop key="天才"/>
+                <prop key="傻瓜"/>
+            </props>
+        </property>
+    </bean>
+
+
+    <bean id="testAuto" class="com.lvshihao.entity.User" autowire="byType">
+        <property name="id" value="55"/>
+        <property name="describe" value="帅"/>
+        <property name="name" value="神"/>
+    </bean>
+    <bean id="dogs" class="com.lvshihao.entity.Dog" primary="true" >
+        <property name="name" value="哈巴狗"></property>
+    </bean>
+</beans>
